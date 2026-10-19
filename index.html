@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Своя Игра — С Днём Рождения, Мама!</title>
+  <title>Своя Игра — Для Мамы</title>
   <style>
     :root {
       --bg: #0b132b;
-      --card-bg: #1c2541;
+      --card: #1c2541;
       --accent: #fca311;
       --text: #ffffff;
       --border: #3a506b;
@@ -15,27 +15,46 @@
       --success: #2a9d8f;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+    body { background: var(--bg); color: var(--text); padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-    h1 { font-size: 1.4rem; color: var(--accent); }
-    .btn { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
+    h1 { font-size: 1.3rem; color: var(--accent); }
+    .btn { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
     .btn:hover { opacity: 0.9; }
     .btn-secondary { background: var(--border); color: #fff; }
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-success { background: var(--success); color: #fff; }
-    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-sm { padding: 4px 8px; font-size: 0.8rem; }
 
     /* Раунды */
-    .round-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-    .round-btn { padding: 8px 14px; background: var(--card-bg); border: 2px solid var(--border); color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
-    .round-btn.active { border-color: var(--accent); background: #2a3c66; color: var(--accent); }
+    .rounds-nav { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .round-tab { padding: 8px 16px; background: var(--card); border: 2px solid var(--border); color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+    .round-tab.active { border-color: var(--accent); background: #243356; color: var(--accent); }
 
-    /* Табло */
-    #board-view { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; }
-    .grid-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .category-row { display: grid; grid-template-columns: 200px repeat(auto-fit, minmax(75px, 1fr)); gap: 8px; }
-    .category-title { background: #1f3160; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; }
-    .tile { background: var(--card-bg); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--accent); border-radius: 8px; border: 2px solid var(--border); cursor: pointer; }
+    /* Табло игры */
+    #board-wrap { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+    .category-row { display: grid; grid-template-columns: 220px repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+    .category-name { background: #1f3160; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 1.05rem; }
+    .tile { background: var(--card); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: var(--accent); border-radius: 8px; border: 2px solid var(--border); cursor: pointer; }
     .tile:hover { transform: scale(1.02); border-color: var(--accent); }
-    .tile.played { opacity: 0.2; cursor: not-
+    .tile.played { opacity: 0.2; cursor: not-allowed; background: #000; border-color: transparent; }
+
+    /* Команды */
+    #teams-bar { margin-top: 14px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+    .team-card { background: var(--card); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; min-width: 140px; text-align: center; }
+    .team-name { font-weight: bold; font-size: 1rem; }
+    .team-score { font-size: 1.4rem; font-weight: 900; color: var(--accent); margin: 4px 0; }
+
+    /* Модальное окно вопроса */
+    #question-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; align-items: center; justify-content: center; text-align: center; overflow-y: auto; }
+    #question-modal.active { display: flex; }
+    .modal-box { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .q-cost-view { font-size: 2.2rem; color: var(--accent); font-weight: 900; }
+    .q-text-view { font-size: 1.6rem; line-height: 1.35; }
+    .media-holder { max-height: 42vh; max-width: 100%; border-radius: 8px; overflow: hidden; margin: 4px 0; }
+    .media-holder img, .media-holder video { max-height: 42vh; max-width: 100%; object-fit: contain; }
+
+    /* Интерактив ответа */
+    .teams-interactive { background: #162447; border: 1px solid var(--border); border-radius: 8px; padding: 12px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .team-btns-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .team-select-btn { background
