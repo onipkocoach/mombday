@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Своя Игра — С Днём Рождения, Мама!</title>
+  <style>
+    :root {
+      --bg: #0b132b;
+      --card-bg: #1c2541;
+      --accent: #fca311;
+      --text: #ffffff;
+      --border: #3a506b;
+      --danger: #e63946;
+      --success: #2a9d8f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+    h1 { font-size: 1.4rem; color: var(--accent); }
+    .btn { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary { background: var(--border); color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+
+    /* Раунды */
+    .round-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .round-btn { padding: 8px 14px; background: var(--card-bg); border: 2px solid var(--border); color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+    .round-btn.active { border-color: var(--accent); background: #2a3c66; color: var(--accent); }
+
+    /* Табло */
+    #board-view { flex-grow: 1; display: flex; flex-direction: column; gap: 12px; }
+    .grid-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .category-row { display: grid; grid-template-columns: 200px repeat(auto-fit, minmax(75px, 1fr)); gap: 8px; }
+    .category-title { background: #1f3160; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; }
+    .tile { background: var(--card-bg); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--accent); border-radius: 8px; border: 2px solid var(--border); cursor: pointer; }
+    .tile:hover { transform: scale(1.02); border-color: var(--accent); }
+    .tile.played { opacity: 0.2; cursor: not-allowed; background: #000; border-color: transparent; }
+
+    /* Команды */
+    #teams-bar { margin-top: 14px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+    .team-card { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; min-width: 140px; text-align: center; }
+    .team-score { font-size: 1.3rem; font-weight: bold; color: var(--accent); margin: 4px 0; }
+    .team-controls { display: flex; gap: 6px; justify-content: center; }
+    .team-controls button { width: 32px; height: 32px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+
+    /* Модальное окно */
+    #question-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 20px; align-items: center; justify-content: center; text-align: center; }
+    #question-modal.active { display: flex; }
+    .modal-content { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+    .q-cost { font-size: 2rem; color: var(--accent); font-weight: 900; }
+    .q-text { font-size: 1.6rem; line-height: 1.3; }
+    .media-box { max-height: 45vh; max-width: 100%; border-radius: 8px; overflow: hidden; margin: 6px 0; }
+    .media-box img, .media-box video { max-height: 45vh; max-width: 100%; object-fit: contain; }
+    .answer-box { display: none; background: #162a45; padding: 14px; border-radius: 8px; border: 2px dashed var(--accent); width: 100%; }
+    .answer-box.visible { display: block; }
+
+    /* Редактор */
+    #editor-view { display: none; flex-direction: column; gap: 14px; max-width: 850px; margin: 0 auto; width: 100%; }
+    textarea, input { background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95rem; width: 100%; }
+
+    @media (max-width: 768px) {
+      .category-row { grid-template-columns: 1fr; }
+      .tile { aspect-ratio: auto; padding: 12px; }
+      .q-text { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Своя Игра: Для Мамы 💖</h1>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn btn-secondary" onclick="toggleEditor()">⚙️ Редактор</button>
+      <button class="btn btn-danger" onclick="resetBoard()">🔄 Сброс</button>
+    </div>
+  </header>
+
+  <div class="round-tabs" id="round-tabs"></div>
+
+  <main id="board-view">
+    <div class="grid-wrap" id="grid-container"></div>
+    <div id="teams-bar"></div>
+  </main>
+
+  <div id="question-modal">
+    <div class="modal-content">
+      <div class="q-cost" id="modal-cost">100</div>
+      <div class="q-text" id="modal-text">Текст вопроса</div>
+      <div class="media-box" id="modal-q-media"></div>
+
+      <div class="answer-box" id="modal-answer-box">
+        <h3 style="color: var(--accent); margin-bottom: 4px;">Правильный ответ:</h3>
+        <p id="modal-answer-text" style="font-size: 1.25rem;"></p>
+        <div class="media-box" id="modal-a-media"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn btn-secondary" onclick="showAnswer()">Показать ответ</button>
+        <button class="btn btn-success" onclick="closeModal()">Закрыть вопрос</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="editor-view">
+    <h2>Команды</h2>
+    <div style="display: flex; gap: 8px;">
+      <input type="text" id="new-team-name" placeholder="Имя команды">
+      <button class="btn" onclick="addTeam()" style="white-space: nowrap;">Добавить</button>
+    </div>
+    <div id="editor-teams-list" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+
+    <h2 style="margin-top: 14px;">Вопросы и медиа (JSON)</h2>
+    <p style="font-size: 0.85rem; color: #a0aec0;">
+      В полях <code>qMedia</code> (в вопросе) или <code>aMedia</code> (в ответе) пишите точное имя загруженного файла (например <code>photo1.jpg</code> или <code>clip.mp4</code>).
+    </p>
+    <textarea id="game-json" rows="16"></textarea>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-success" onclick="saveGameData()">Сохранить изменения</button>
+      <button class="btn btn-secondary" onclick="resetToSample()">Загрузить образец</button>
+    </div>
+  </section>
+
+  <script>
+    const sampleGame = {
+      rounds: [
+        {
+          name: "Раунд 1 (100–500)",
+          categories: [
+            {
+              name: "Семейный архив",
+              questions: [
+                { cost: 100, text: "В каком году сделана эта фотография?", answer: "1998 год", qMedia: "", aMedia: "" },
+                { cost: 200, text: "Коронное мамино блюдо на праздник?", answer: "Фирменный торт", qMedia: "", aMedia: "" },
+                { cost: 300, text: "Угадайте песню из маминой молодости:", answer: "Название песни", qMedia: "", aMedia: "" },
+                { cost: 400, text: "Где мама отдыхала в тот памятный отпуск?", answer: "На море", qMedia: "", aMedia: "" },
+                { cost: 500, text: "Любимое занятие мамы в детстве?", answer: "Чтение книг", qMedia: "", aMedia: "" }
+              ]
+            },
+            {
+              name: "Любимое кино",
+              questions: [
+                { cost: 100, text: "Любимый советский фильм мамы?", answer: "Любовь и голуби", qMedia: "", aMedia: "" },
+                { cost: 200, text: "Из какого фильма эта фраза?", answer: "Москва слезам не верит", qMedia: "", aMedia: "" },
+                { cost: 300, text: "Кто главный любимый актер мамы?", answer: "Ответ", qMedia: "", aMedia: "" },
+                { cost: 400, text: "Кадр из какого фильма на экране?", answer: "Служебный роман", qMedia: "", aMedia: "" },
+                { cost: 500, text: "Какую передачу мама никогда не пропускает?", answer: "Ответ", qMedia: "", aMedia: "" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "Раунд 2 (200–1000)",
+          categories: [
+            {
+              name: "Всё о маме",
+              questions: [
+                { cost: 200, text: "Любимый сорт цветов?", answer: "Тюльпаны", qMedia: "", aMedia: "" },
+                { cost: 400, text: "Любимое время года?", answer: "Весна", qMedia: "", aMedia: "" },
+                { cost: 600, text: "Чай или кофе?", answer: "Чай с лимоном", qMedia: "", aMedia: "" },
+                { cost: 800, text: "Любимый цвет в одежде?", answer: "Синий", qMedia: "", aMedia: "" },
+                { cost: 1000, text: "О чём мама мечтает прямо сейчас?", answer: "Собрать всю семью вместе", qMedia: "", aMedia: "" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "Раунд 3 (300–1500)",
+          categories: [
+            {
+              name: "Тайны и факты",
+              questions: [
+                { cost: 300, text: "Любимый школьный предмет мамы?", answer: "Литература", qMedia: "", aMedia: "" },
+                { cost: 600, text: "Первое домашнее животное в доме?", answer: "Кот", qMedia: "", aMedia: "" },
+                { cost: 900, text: "Сколько городов мама посетила?", answer: "Более 10", qMedia: "", aMedia: "" },
+                { cost: 1200, text: "Кем мама мечтала стать в детстве?", answer: "Учительницей", qMedia: "", aMedia: "" },
+                { cost: 1500, text: "Секретный вопрос от детей!", answer: "Мы тебя очень любим!", qMedia: "", aMedia: "" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "Финал",
+          categories: [
+            {
+              name: "Суперигра",
+              questions: [
+                { cost: 5000, text: "Главное пожелание для мамы от всей семьи в день рождения?", answer: "Здоровья, счастья и улыбок каждый день!", qMedia: "", aMedia: "" }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    let gameData = JSON.parse(localStorage.getItem('mombday_data')) || sampleGame;
+    let teams = JSON.parse(localStorage.getItem('mombday_teams')) || [
+      { name: "Команда 1", score: 0 },
+      { name: "Команда 2", score: 0 }
+    ];
+    let playedTiles = JSON.parse(localStorage.getItem('mombday_played')) || [];
+    let currentRoundIndex = 0;
+    let currentCost = 0;
+
+    function init() {
+      renderRoundTabs();
+      renderBoard();
+      renderTeams();
+    }
+
+    function renderRoundTabs() {
+      const container = document.getElementById('round-tabs');
+      container.innerHTML = '';
+      gameData.rounds.forEach((r, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'round-btn' + (idx === currentRoundIndex ? ' active' : '');
+        btn.innerText = r.name;
+        btn.onclick = () => {
+          currentRoundIndex = idx;
+          renderRoundTabs();
+          renderBoard();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function renderBoard() {
+      const container = document.getElementById('grid-container');
+      container.innerHTML = '';
+      const round = gameData.rounds[currentRoundIndex];
+      if (!round) return;
+
+      round.categories.forEach((cat, catIdx) => {
+        const row = document.createElement('div');
+        row.className = 'category-row';
+
+        const title = document.createElement('div');
+        title.className = 'category-title';
+        title.innerText = cat.name;
+        row.appendChild(title);
+
+        cat.questions.forEach((q, qIdx) => {
+          const tile = document.createElement('div');
+          const tileId = `r${currentRoundIndex}-c${catIdx}-q${qIdx}`;
+          tile.className = 'tile' + (playedTiles.includes(tileId) ? ' played' : '');
+          tile.innerText = q.cost;
+
+          if (!playedTiles.includes(tileId)) {
+            tile.onclick = () => openQuestion(catIdx, qIdx, tileId);
+          }
+          row.appendChild(tile);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function openQuestion(catIdx, qIdx, tileId) {
+      const q = gameData.rounds[currentRoundIndex].categories[catIdx].questions[qIdx];
+      currentCost = q.cost;
+
+      document.getElementById('modal-cost').innerText = `${q.cost} баллов`;
+      document.getElementById('modal-text').innerText = q.text;
+
+      renderMedia(document.getElementById('modal-q-media'), q.qMedia);
+
+      document.getElementById('modal-answer-box').classList.remove('visible');
+      document.getElementById('modal-answer-text').innerText = q.answer;
+      renderMedia(document.getElementById('modal-a-media'), q.aMedia);
+
+      document.getElementById('question-modal').classList.add('active');
+
+      if (!playedTiles.includes(tileId)) {
+        playedTiles.push(tileId);
+        localStorage.setItem('mombday_played', JSON.stringify(playedTiles));
+      }
+    }
+
+    function renderMedia(container, path) {
+      container.innerHTML = '';
+      if (!path) return;
+      const lower = path.toLowerCase();
+      if (lower.endsWith('.mp4') || lower.endsWith('.mov') || lower.endsWith('.webm')) {
+        container.innerHTML = `<video src="${path}" controls autoplay playsinline></video>`;
+      } else if (lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.m4a') || lower.endsWith('.ogg')) {
+        container.innerHTML = `<audio src="${path}" controls autoplay></audio>`;
+      } else {
+        container.innerHTML = `<img src="${path}" alt="Медиа">`;
+      }
+    }
+
+    function showAnswer() {
+      document.getElementById('modal-answer-box').classList.add('visible');
+    }
+
+    function closeModal() {
+      document.getElementById('question-modal').classList.remove('active');
+      document.getElementById('modal-q-media').innerHTML = '';
+      document.getElementById('modal-a-media').innerHTML = '';
+      renderBoard();
+    }
+
+    function renderTeams() {
+      const bar = document.getElementById('teams-bar');
+      bar.innerHTML = '';
+      teams.forEach((team, idx) => {
+        const card = document.createElement('div');
+        card.className = 'team-card';
+        card.innerHTML = `
+          <div><strong>${team.name}</strong></div>
+          <div class="team-score">${team.score}</div>
+          <div class="team-controls">
+            <button class="btn-danger" onclick="changeScore(${idx}, -${currentCost || 100})">-</button>
+            <button class="btn-success" onclick="changeScore(${idx}, ${currentCost || 100})">+</button>
+          </div>
+        `;
+        bar.appendChild(card);
+      });
+      renderEditorTeams();
+    }
+
+    function changeScore(idx, delta) {
+      teams[idx].score += delta;
+      localStorage.setItem('mombday_teams', JSON.stringify(teams));
+      renderTeams();
+    }
+
+    function addTeam() {
+      const input = document.getElementById('new-team-name');
+      if (!input.value.trim()) return;
+      teams.push({ name: input.value.trim(), score: 0 });
+      input.value = '';
+      localStorage.setItem('mombday_teams', JSON.stringify(teams));
+      renderTeams();
+    }
+
+    function removeTeam(idx) {
+      teams.splice(idx, 1);
+      localStorage.setItem('mombday_teams', JSON.stringify(teams));
+      renderTeams();
+    }
+
+    function renderEditorTeams() {
+      const list = document.getElementById('editor-teams-list');
+      list.innerHTML = '';
+      teams.forEach((t, idx) => {
+        list.innerHTML += `
+          <span style="background: #2b3a55; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">
+            ${t.name} <b style="cursor:pointer; color:red; margin-left:4px;" onclick="removeTeam(${idx})">&times;</b>
+          </span>
+        `;
+      });
+    }
+
+    function resetBoard() {
+      if (confirm('Сбросить сыгранные вопросы и счёт?')) {
+        playedTiles = [];
+        teams.forEach(t => t.score = 0);
+        localStorage.removeItem('mombday_played');
+        localStorage.setItem('mombday_teams', JSON.stringify(teams));
+        renderBoard();
+        renderTeams();
+      }
+    }
+
+    function toggleEditor() {
+      const board = document.getElementById('board-view');
+      const editor = document.getElementById('editor-view');
+      if (editor.style.display === 'flex') {
+        editor.style.display = 'none';
+        board.style.display = 'flex';
+      } else {
+        editor.style.display = 'flex';
+        board.style.display = 'none';
+        document.getElementById('game-json').value = JSON.stringify(gameData, null, 2);
+      }
+    }
+
+    function saveGameData() {
+      try {
+        const val = JSON.parse(document.getElementById('game-json').value);
+        gameData = val;
+        localStorage.setItem('mombday_data', JSON.stringify(gameData));
+        alert('Сохранено!');
+        toggleEditor();
+        renderRoundTabs();
+        renderBoard();
+      } catch (e) {
+        alert('Ошибка JSON: проверьте запятые и кавычки.');
+      }
+    }
+
+    function resetToSample() {
+      document.getElementById('game-json').value = JSON.stringify(sampleGame, null, 2);
+    }
+
+    init();
+  </script>
+</body>
+</html>
+
