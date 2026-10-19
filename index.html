@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  <!-- Удобный визуальный редактор (без кода!) -->
+  <!-- Визуальный редактор вопросов -->
   <section id="editor-view">
     <div class="editor-section">
       <h2>Команды</h2>
@@ -255,14 +255,14 @@
 
     function safeLoad() {
       try {
-        gameData = JSON.parse(localStorage.getItem('mombday_data_v4'));
+        gameData = JSON.parse(localStorage.getItem('mombday_data_v5'));
         if (!gameData || !gameData.rounds || !Array.isArray(gameData.rounds)) gameData = defaultGame;
       } catch (e) {
         gameData = defaultGame;
       }
 
       try {
-        teams = JSON.parse(localStorage.getItem('mombday_teams_v4'));
+        teams = JSON.parse(localStorage.getItem('mombday_teams_v5'));
         if (!teams || !Array.isArray(teams) || teams.length === 0) {
           teams = [{ name: "Команда 1", score: 0 }, { name: "Команда 2", score: 0 }];
         }
@@ -271,12 +271,12 @@
       }
 
       try {
-        playedTiles = JSON.parse(localStorage.getItem('mombday_played_v4')) || [];
+        playedTiles = JSON.parse(localStorage.getItem('mombday_played_v5')) || [];
       } catch (e) {
         playedTiles = [];
       }
       
-      currentRoundIndex = parseInt(localStorage.getItem('mombday_curr_round') || "0");
+      currentRoundIndex = parseInt(localStorage.getItem('mombday_curr_round_v5') || "0");
       if (currentRoundIndex >= gameData.rounds.length) currentRoundIndex = 0;
     }
 
@@ -341,7 +341,7 @@
 
     function switchRound(idx) {
       currentRoundIndex = idx;
-      localStorage.setItem('mombday_curr_round', currentRoundIndex);
+      localStorage.setItem('mombday_curr_round_v5', currentRoundIndex);
       renderBoard();
     }
 
@@ -368,7 +368,7 @@
 
       if (!playedTiles.includes(tileId)) {
         playedTiles.push(tileId);
-        localStorage.setItem('mombday_played_v4', JSON.stringify(playedTiles));
+        localStorage.setItem('mombday_played_v5', JSON.stringify(playedTiles));
       }
     }
 
@@ -396,7 +396,7 @@
 
       if (isCorrect) {
         teams[selectedTeamIdx].score += currentCost;
-        localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
+        localStorage.setItem('mombday_teams_v5', JSON.stringify(teams));
         renderTeams();
         showAnswer();
         document.getElementById('modal-answering-box').style.display = 'none';
@@ -404,7 +404,7 @@
         teams[selectedTeamIdx].score -= currentCost;
         failedTeams.push(selectedTeamIdx);
         selectedTeamIdx = null;
-        localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
+        localStorage.setItem('mombday_teams_v5', JSON.stringify(teams));
         renderTeams();
         document.getElementById('verdict-container').style.display = 'none';
         renderModalTeamButtons();
@@ -465,13 +465,13 @@
       if (!input.value.trim()) return;
       teams.push({ name: input.value.trim(), score: 0 });
       input.value = '';
-      localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
+      localStorage.setItem('mombday_teams_v5', JSON.stringify(teams));
       renderTeams();
     }
 
     function removeTeam(idx) {
       teams.splice(idx, 1);
-      localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
+      localStorage.setItem('mombday_teams_v5', JSON.stringify(teams));
       renderTeams();
     }
 
@@ -580,7 +580,7 @@
         });
       });
 
-      localStorage.setItem('mombday_data_v4', JSON.stringify(gameData));
+      localStorage.setItem('mombday_data_v5', JSON.stringify(gameData));
       alert('Все вопросы раунда сохранены!');
       toggleEditor();
       renderBoard();
