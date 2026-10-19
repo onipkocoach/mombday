@@ -6,103 +6,118 @@
   <title>Своя Игра — С Днём Рождения, Мама!</title>
   <style>
     :root {
-      --bg: #0b132b;
-      --card-bg: #1c2541;
-      --accent: #fca311;
+      --bg: #070d1e;
+      --card-bg: #132247;
+      --accent: #ffb703;
+      --accent-hover: #fb8500;
       --text: #ffffff;
-      --border: #3a506b;
+      --border: #213a70;
       --danger: #e63946;
       --success: #2a9d8f;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
-    
+
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .header-title-box { display: flex; align-items: center; gap: 12px; }
     h1 { font-size: 1.3rem; color: var(--accent); }
+    .round-badge { background: #1d3557; color: #a8dadc; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.95rem; border: 1px solid var(--border); }
+
     .btn { background: var(--accent); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-    .btn:hover { opacity: 0.9; }
-    .btn-secondary { background: var(--border); color: #fff; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary { background: #1d3557; color: #fff; }
     .btn-danger { background: var(--danger); color: #fff; }
     .btn-success { background: var(--success); color: #fff; }
+    .btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
-    /* Раунды */
-    .round-tabs { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-    .round-btn { padding: 8px 14px; background: var(--card-bg); border: 2px solid var(--border); color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
-    .round-btn.active { border-color: var(--accent); background: #2a3c66; color: var(--accent); }
+    /* Табло игры */
+    #board-view { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+    .grid-table { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 1400px; margin: 0 auto; }
+    
+    .category-row { display: grid; grid-template-columns: 240px repeat(5, 1fr); gap: 8px; align-items: stretch; }
+    .category-title { background: #102454; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; padding: 10px 14px; border-radius: 8px; border: 2px solid var(--border); font-size: 1.1rem; line-height: 1.2; text-transform: uppercase; color: #e0e6ed; }
+    
+    .tile { background: var(--card-bg); min-height: 70px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; color: var(--accent); border-radius: 8px; border: 2px solid var(--border); cursor: pointer; transition: transform 0.1s, border-color 0.1s; user-select: none; }
+    .tile:hover { transform: scale(1.02); border-color: var(--accent); background: #19316b; }
+    .tile.played { opacity: 0.15; cursor: not-allowed; background: #000; border-color: transparent; }
 
-    /* Табло */
-    #board-view { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
-    .grid-wrap { display: flex; flex-direction: column; gap: 8px; }
-    .category-row { display: grid; grid-template-columns: 200px repeat(5, 1fr); gap: 8px; }
-    .category-title { background: #1f3160; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 1rem; }
-    .tile { background: var(--card-bg); aspect-ratio: 16/10; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--accent); border-radius: 8px; border: 2px solid var(--border); cursor: pointer; }
-    .tile:hover { transform: scale(1.02); border-color: var(--accent); }
-    .tile.played { opacity: 0.2; cursor: not-allowed; background: #000; border-color: transparent; }
+    /* Панель перехода между раундами */
+    .round-nav-bar { display: flex; justify-content: center; gap: 12px; margin: 10px 0; }
 
-    /* Команды */
-    #teams-bar { margin-top: 14px; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
-    .team-card { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; min-width: 130px; text-align: center; }
-    .team-score { font-size: 1.3rem; font-weight: bold; color: var(--accent); margin: 4px 0; }
+    /* Панель команд */
+    #teams-bar { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; justify-content: center; flex-wrap: wrap; }
+    .team-card { background: var(--card-bg); border: 2px solid var(--border); padding: 8px 16px; border-radius: 8px; min-width: 150px; text-align: center; }
+    .team-name { font-weight: 600; font-size: 1rem; color: #cbd5e1; }
+    .team-score { font-size: 1.5rem; font-weight: 900; color: var(--accent); margin-top: 2px; }
 
-    /* Модальное окно */
-    #question-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; padding: 16px; align-items: center; justify-content: center; text-align: center; overflow-y: auto; }
+    /* Окно вопроса */
+    #question-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 100; flex-direction: column; padding: 20px; align-items: center; justify-content: center; text-align: center; }
     #question-modal.active { display: flex; }
-    .modal-content { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
-    .q-cost { font-size: 2.2rem; color: var(--accent); font-weight: 900; }
-    .q-text { font-size: 1.6rem; line-height: 1.3; }
-    .media-box { max-height: 40vh; max-width: 100%; border-radius: 8px; overflow: hidden; margin: 4px 0; }
-    .media-box img, .media-box video { max-height: 40vh; max-width: 100%; object-fit: contain; }
+    .modal-content { max-width: 950px; width: 100%; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+    .q-cost { font-size: 2.4rem; color: var(--accent); font-weight: 900; }
+    .q-text { font-size: 1.9rem; line-height: 1.35; font-weight: 600; }
+    .media-box { max-height: 44vh; max-width: 100%; border-radius: 10px; overflow: hidden; margin: 6px 0; }
+    .media-box img, .media-box video { max-height: 44vh; max-width: 100%; object-fit: contain; border-radius: 8px; }
 
-    /* Блок команд внутри вопроса */
-    .answering-box { background: #162447; border: 1px solid var(--border); border-radius: 8px; padding: 12px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-    .team-choice-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-    .team-pick-btn { background: #1f3160; color: #fff; border: 2px solid var(--border); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    /* Блок команд в вопросе */
+    .answering-box { background: #0f1c3f; border: 1px solid var(--border); border-radius: 10px; padding: 14px; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .team-choice-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .team-pick-btn { background: #1a2f60; color: #fff; border: 2px solid var(--border); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
     .team-pick-btn.selected { border-color: var(--accent); background: var(--accent); color: #000; }
     .team-pick-btn:disabled { opacity: 0.25; cursor: not-allowed; text-decoration: line-through; }
 
-    .verdict-btns { display: flex; gap: 10px; justify-content: center; }
-    
-    .answer-box { display: none; background: #162a45; padding: 14px; border-radius: 8px; border: 2px dashed var(--accent); width: 100%; }
+    .verdict-btns { display: flex; gap: 12px; justify-content: center; }
+    .answer-box { display: none; background: #142852; padding: 16px; border-radius: 8px; border: 2px dashed var(--accent); width: 100%; }
     .answer-box.visible { display: block; }
 
     /* Редактор */
-    #editor-view { display: none; flex-direction: column; gap: 14px; max-width: 850px; margin: 0 auto; width: 100%; }
-    textarea, input { background: var(--card-bg); border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.95rem; width: 100%; }
+    #editor-view { display: none; flex-direction: column; gap: 16px; max-width: 1000px; margin: 0 auto; width: 100%; padding-bottom: 40px; }
+    .editor-section { background: #101c3d; padding: 16px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+    .editor-q-card { background: #172752; padding: 12px; border-radius: 6px; border-left: 4px solid var(--accent); display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .input-row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center; }
+    label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+    input, select { background: #0a1329; border: 1px solid var(--border); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.95rem; }
 
-    @media (max-width: 768px) {
-      .category-row { grid-template-columns: 1fr; }
-      .tile { aspect-ratio: auto; padding: 12px; }
-      .q-text { font-size: 1.2rem; }
+    @media (max-width: 850px) {
+      .category-row { grid-template-columns: 140px repeat(5, 1fr); gap: 4px; }
+      .category-title { font-size: 0.85rem; padding: 6px; }
+      .tile { font-size: 1.1rem; min-height: 50px; }
+      .q-text { font-size: 1.3rem; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Своя Игра: Для Мамы 💖</h1>
-    <div style="display: flex; gap: 6px;">
-      <button class="btn btn-secondary" onclick="toggleEditor()">⚙️ Редактор</button>
-      <button class="btn btn-danger" onclick="hardReset()">🔄 Сбросить игру</button>
+    <div class="header-title-box">
+      <h1>Своя Игра: Для Мамы 💖</h1>
+      <span class="round-badge" id="current-round-label">Раунд 1</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-secondary" onclick="toggleEditor()">⚙️ Редактор вопросов</button>
+      <button class="btn btn-danger" onclick="hardReset()">🔄 Сброс игры</button>
     </div>
   </header>
 
-  <div class="round-tabs" id="round-tabs"></div>
-
+  <!-- Экран игры -->
   <main id="board-view">
-    <div class="grid-wrap" id="grid-container"></div>
+    <div class="grid-table" id="grid-container"></div>
+    
+    <div class="round-nav-bar" id="round-nav-bar"></div>
+
     <div id="teams-bar"></div>
   </main>
 
-  <!-- Модальное окно вопроса -->
+  <!-- Окно вопроса -->
   <div id="question-modal">
     <div class="modal-content">
       <div class="q-cost" id="modal-cost">100</div>
-      <div class="q-text" id="modal-text">Вопрос</div>
+      <div class="q-text" id="modal-text">Текст вопроса</div>
       <div class="media-box" id="modal-q-media"></div>
 
       <!-- Кто отвечает -->
       <div class="answering-box" id="modal-answering-box">
-        <div style="font-size: 1rem; color: #a0aec0;">Кто отвечает? Нажмите на команду:</div>
+        <div style="font-size: 1.1rem; color: #94a3b8;">Кто поднял руку первым? Нажмите на команду:</div>
         <div class="team-choice-btns" id="modal-teams-list"></div>
         
         <div class="verdict-btns" id="verdict-container" style="display: none;">
@@ -117,56 +132,65 @@
 
       <!-- Правильный ответ -->
       <div class="answer-box" id="modal-answer-box">
-        <h3 style="color: var(--accent); margin-bottom: 4px;">Правильный ответ:</h3>
-        <p id="modal-answer-text" style="font-size: 1.3rem;"></p>
+        <h3 style="color: var(--accent); margin-bottom: 6px;">Правильный ответ:</h3>
+        <p id="modal-answer-text" style="font-size: 1.4rem;"></p>
         <div class="media-box" id="modal-a-media"></div>
       </div>
 
-      <div style="display: flex; gap: 10px; margin-top: 6px;">
-        <button class="btn btn-secondary" id="btn-show-ans" onclick="showAnswer()">👀 Показать ответ</button>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <button class="btn btn-secondary" onclick="showAnswer()">👀 Показать ответ</button>
         <button class="btn btn-success" onclick="closeModal()">Завершить вопрос</button>
       </div>
     </div>
   </div>
 
-  <!-- Редактор -->
+  <!-- Удобный визуальный редактор (без кода!) -->
   <section id="editor-view">
-    <h2>Команды</h2>
-    <div style="display: flex; gap: 8px;">
-      <input type="text" id="new-team-name" placeholder="Имя команды">
-      <button class="btn" onclick="addTeam()" style="white-space: nowrap;">Добавить</button>
+    <div class="editor-section">
+      <h2>Команды</h2>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="new-team-name" placeholder="Название новой команды">
+        <button class="btn" onclick="addTeam()" style="white-space: nowrap;">Добавить</button>
+      </div>
+      <div id="editor-teams-list" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
     </div>
-    <div id="editor-teams-list" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
 
-    <h2 style="margin-top: 14px;">Редактор вопросов (JSON)</h2>
-    <p style="font-size: 0.85rem; color: #a0aec0;">
-      В поле <code>qMedia</code> или <code>aMedia</code> пишите точное имя файла, который вы загрузили (например, <code>photo.jpg</code> или <code>video.mp4</code>).
-    </p>
-    <textarea id="game-json" rows="15"></textarea>
-    <div style="display: flex; gap: 8px;">
-      <button class="btn btn-success" onclick="saveGameData()">Сохранить изменения</button>
-      <button class="btn btn-secondary" onclick="resetToSample()">Загрузить шаблон</button>
+    <div class="editor-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <h2>Редактирование вопросов</h2>
+        <select id="editor-round-select" onchange="renderEditorQuestions()" style="padding: 6px 12px; font-weight: bold;"></select>
+      </div>
+      <p style="font-size: 0.85rem; color: #94a3b8;">
+        В поле «Медиа» вписывайте точное имя файла, загруженного на GitHub (например: <code>photo1.jpg</code> или <code>song.mp3</code>). Если медиа нет — оставляйте пустым.
+      </p>
+
+      <div id="editor-questions-container"></div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn btn-success" onclick="saveEditorData()" style="padding: 10px 20px; font-size: 1rem;">💾 Сохранить изменения</button>
+        <button class="btn btn-secondary" onclick="toggleEditor()">Отмена / Назад к табло</button>
+      </div>
     </div>
   </section>
 
   <script>
-    const sampleGame = {
+    const defaultGame = {
       rounds: [
         {
-          name: "Раунд 1 (100–500)",
+          name: "Раунд 1",
           categories: [
             {
-              name: "Семейные моменты",
+              name: "Семейный альбом",
               questions: [
-                { cost: 100, text: "В каком году сделан этот снимок?", answer: "1998 год", qMedia: "", aMedia: "" },
+                { cost: 100, text: "В каком году сделана эта фотография?", answer: "1998 год", qMedia: "", aMedia: "" },
                 { cost: 200, text: "Коронное мамино праздничное блюдо?", answer: "Фирменный салат", qMedia: "", aMedia: "" },
-                { cost: 300, text: "Любимая песня мамы из молодости?", answer: "Ответ", qMedia: "", aMedia: "" },
+                { cost: 300, text: "Любимая песня мамы из молодости?", answer: "Название песни", qMedia: "", aMedia: "" },
                 { cost: 400, text: "Где мама отдыхала в тот памятный отпуск?", answer: "На море", qMedia: "", aMedia: "" },
                 { cost: 500, text: "О чём мама больше всего мечтала в детстве?", answer: "Ответ", qMedia: "", aMedia: "" }
               ]
             },
             {
-              name: "Любимые фильмы",
+              name: "Любимое кино",
               questions: [
                 { cost: 100, text: "Любимый советский фильм мамы?", answer: "Любовь и голуби", qMedia: "", aMedia: "" },
                 { cost: 200, text: "Из какого фильма эта фраза?", answer: "Москва слезам не верит", qMedia: "", aMedia: "" },
@@ -178,22 +202,22 @@
           ]
         },
         {
-          name: "Раунд 2 (200–1000)",
+          name: "Раунд 2",
           categories: [
             {
               name: "Привычки и вкусы",
               questions: [
                 { cost: 200, text: "Любимые цветы мамы?", answer: "Тюльпаны", qMedia: "", aMedia: "" },
                 { cost: 400, text: "Любимое время года?", answer: "Весна", qMedia: "", aMedia: "" },
-                { cost: 600, text: "Чай или кофе?", answer: "Чай", qMedia: "", aMedia: "" },
+                { cost: 600, text: "Чай или кофе?", answer: "Чай с лимоном", qMedia: "", aMedia: "" },
                 { cost: 800, text: "Любимый цвет одежды?", answer: "Синий", qMedia: "", aMedia: "" },
-                { cost: 1000, text: "Какое хобби маме ближе всего?", answer: "Ответ", qMedia: "", aMedia: "" }
+                { cost: 1000, text: "Какое хобби маме ближе всего?", answer: "Чтение", qMedia: "", aMedia: "" }
               ]
             }
           ]
         },
         {
-          name: "Раунд 3 (300–1500)",
+          name: "Раунд 3",
           categories: [
             {
               name: "Секретные факты",
@@ -213,7 +237,7 @@
             {
               name: "Суперигра",
               questions: [
-                { cost: 5000, text: "Главное пожелание для мамы от всех нас?", answer: "Здоровья, радости и гармонии каждый день!", qMedia: "", aMedia: "" }
+                { cost: 5000, text: "Главное пожелание для мамы от всех нас?", answer: "Крепкого здоровья, радости и улыбок!", qMedia: "", aMedia: "" }
               ]
             }
           ]
@@ -231,14 +255,14 @@
 
     function safeLoad() {
       try {
-        gameData = JSON.parse(localStorage.getItem('mombday_data_v3'));
-        if (!gameData || !gameData.rounds || !Array.isArray(gameData.rounds)) gameData = sampleGame;
+        gameData = JSON.parse(localStorage.getItem('mombday_data_v4'));
+        if (!gameData || !gameData.rounds || !Array.isArray(gameData.rounds)) gameData = defaultGame;
       } catch (e) {
-        gameData = sampleGame;
+        gameData = defaultGame;
       }
 
       try {
-        teams = JSON.parse(localStorage.getItem('mombday_teams_v3'));
+        teams = JSON.parse(localStorage.getItem('mombday_teams_v4'));
         if (!teams || !Array.isArray(teams) || teams.length === 0) {
           teams = [{ name: "Команда 1", score: 0 }, { name: "Команда 2", score: 0 }];
         }
@@ -247,33 +271,19 @@
       }
 
       try {
-        playedTiles = JSON.parse(localStorage.getItem('mombday_played_v3')) || [];
+        playedTiles = JSON.parse(localStorage.getItem('mombday_played_v4')) || [];
       } catch (e) {
         playedTiles = [];
       }
+      
+      currentRoundIndex = parseInt(localStorage.getItem('mombday_curr_round') || "0");
+      if (currentRoundIndex >= gameData.rounds.length) currentRoundIndex = 0;
     }
 
     function init() {
       safeLoad();
-      renderRoundTabs();
       renderBoard();
       renderTeams();
-    }
-
-    function renderRoundTabs() {
-      const container = document.getElementById('round-tabs');
-      container.innerHTML = '';
-      gameData.rounds.forEach((r, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'round-btn' + (idx === currentRoundIndex ? ' active' : '');
-        btn.innerText = r.name;
-        btn.onclick = () => {
-          currentRoundIndex = idx;
-          renderRoundTabs();
-          renderBoard();
-        };
-        container.appendChild(btn);
-      });
     }
 
     function renderBoard() {
@@ -281,6 +291,8 @@
       container.innerHTML = '';
       const round = gameData.rounds[currentRoundIndex];
       if (!round) return;
+
+      document.getElementById('current-round-label').innerText = round.name;
 
       round.categories.forEach((cat, catIdx) => {
         const row = document.createElement('div');
@@ -305,6 +317,32 @@
 
         container.appendChild(row);
       });
+
+      // Кнопки перехода между раундами
+      const navBar = document.getElementById('round-nav-bar');
+      navBar.innerHTML = '';
+
+      if (currentRoundIndex > 0) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'btn btn-secondary';
+        prevBtn.innerText = '⬅️ Предыдущий раунд';
+        prevBtn.onclick = () => switchRound(currentRoundIndex - 1);
+        navBar.appendChild(prevBtn);
+      }
+
+      if (currentRoundIndex < gameData.rounds.length - 1) {
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn';
+        nextBtn.innerText = `➡️ Перейти: ${gameData.rounds[currentRoundIndex + 1].name}`;
+        nextBtn.onclick = () => switchRound(currentRoundIndex + 1);
+        navBar.appendChild(nextBtn);
+      }
+    }
+
+    function switchRound(idx) {
+      currentRoundIndex = idx;
+      localStorage.setItem('mombday_curr_round', currentRoundIndex);
+      renderBoard();
     }
 
     function openQuestion(catIdx, qIdx, tileId) {
@@ -330,7 +368,7 @@
 
       if (!playedTiles.includes(tileId)) {
         playedTiles.push(tileId);
-        localStorage.setItem('mombday_played_v3', JSON.stringify(playedTiles));
+        localStorage.setItem('mombday_played_v4', JSON.stringify(playedTiles));
       }
     }
 
@@ -358,7 +396,7 @@
 
       if (isCorrect) {
         teams[selectedTeamIdx].score += currentCost;
-        localStorage.setItem('mombday_teams_v3', JSON.stringify(teams));
+        localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
         renderTeams();
         showAnswer();
         document.getElementById('modal-answering-box').style.display = 'none';
@@ -366,7 +404,7 @@
         teams[selectedTeamIdx].score -= currentCost;
         failedTeams.push(selectedTeamIdx);
         selectedTeamIdx = null;
-        localStorage.setItem('mombday_teams_v3', JSON.stringify(teams));
+        localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
         renderTeams();
         document.getElementById('verdict-container').style.display = 'none';
         renderModalTeamButtons();
@@ -414,7 +452,7 @@
         const card = document.createElement('div');
         card.className = 'team-card';
         card.innerHTML = `
-          <div><strong>${team.name}</strong></div>
+          <div class="team-name">${team.name}</div>
           <div class="team-score">${team.score}</div>
         `;
         bar.appendChild(card);
@@ -427,35 +465,37 @@
       if (!input.value.trim()) return;
       teams.push({ name: input.value.trim(), score: 0 });
       input.value = '';
-      localStorage.setItem('mombday_teams_v3', JSON.stringify(teams));
+      localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
       renderTeams();
     }
 
     function removeTeam(idx) {
       teams.splice(idx, 1);
-      localStorage.setItem('mombday_teams_v3', JSON.stringify(teams));
+      localStorage.setItem('mombday_teams_v4', JSON.stringify(teams));
       renderTeams();
     }
 
     function renderEditorTeams() {
       const list = document.getElementById('editor-teams-list');
+      if (!list) return;
       list.innerHTML = '';
       teams.forEach((t, idx) => {
         list.innerHTML += `
-          <span style="background: #2b3a55; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">
-            ${t.name} <b style="cursor:pointer; color:red; margin-left:4px;" onclick="removeTeam(${idx})">&times;</b>
+          <span style="background: #1b2f5c; padding: 6px 10px; border-radius: 6px; font-size: 0.95rem;">
+            ${t.name} <b style="cursor:pointer; color:red; margin-left:6px;" onclick="removeTeam(${idx})">&times;</b>
           </span>
         `;
       });
     }
 
     function hardReset() {
-      if (confirm('Сбросить игру к исходным настройкам?')) {
+      if (confirm('Сбросить игру (все очки и сыгранные вопросы)?')) {
         localStorage.clear();
         location.reload();
       }
     }
 
+    /* Визуальный редактор вопросов */
     function toggleEditor() {
       const board = document.getElementById('board-view');
       const editor = document.getElementById('editor-view');
@@ -465,29 +505,87 @@
       } else {
         editor.style.display = 'flex';
         board.style.display = 'none';
-        document.getElementById('game-json').value = JSON.stringify(gameData, null, 2);
+        setupEditorSelect();
+        renderEditorQuestions();
       }
     }
 
-    function saveGameData() {
-      try {
-        const val = JSON.parse(document.getElementById('game-json').value);
-        gameData = val;
-        localStorage.setItem('mombday_data_v3', JSON.stringify(gameData));
-        alert('Сохранено!');
-        toggleEditor();
-        renderRoundTabs();
-        renderBoard();
-      } catch (e) {
-        alert('Ошибка JSON! Проверьте правильность запятых и кавычек.');
-      }
+    function setupEditorSelect() {
+      const sel = document.getElementById('editor-round-select');
+      sel.innerHTML = '';
+      gameData.rounds.forEach((r, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = r.name;
+        if (idx === currentRoundIndex) opt.selected = true;
+        sel.appendChild(opt);
+      });
     }
 
-    function resetToSample() {
-      document.getElementById('game-json').value = JSON.stringify(sampleGame, null, 2);
+    function renderEditorQuestions() {
+      const sel = document.getElementById('editor-round-select');
+      const rIdx = parseInt(sel.value);
+      const container = document.getElementById('editor-questions-container');
+      container.innerHTML = '';
+
+      const round = gameData.rounds[rIdx];
+      if (!round) return;
+
+      round.categories.forEach((cat, cIdx) => {
+        const catBox = document.createElement('div');
+        catBox.style.marginTop = '16px';
+        catBox.innerHTML = `
+          <div class="input-row" style="margin-bottom: 8px;">
+            <label style="color:var(--accent);">ТЕМА:</label>
+            <input type="text" id="cat-name-${rIdx}-${cIdx}" value="${cat.name}">
+          </div>
+        `;
+
+        cat.questions.forEach((q, qIdx) => {
+          const qBox = document.createElement('div');
+          qBox.className = 'editor-q-card';
+          qBox.innerHTML = `
+            <div style="font-weight:bold; color:var(--accent);">Вопрос за ${q.cost}</div>
+            <div class="input-row">
+              <label>Вопрос:</label>
+              <input type="text" id="q-text-${rIdx}-${cIdx}-${qIdx}" value="${q.text}">
+            </div>
+            <div class="input-row">
+              <label>Ответ:</label>
+              <input type="text" id="q-ans-${rIdx}-${cIdx}-${qIdx}" value="${q.answer}">
+            </div>
+            <div class="input-row">
+              <label>Медиа:</label>
+              <input type="text" id="q-media-${rIdx}-${cIdx}-${qIdx}" value="${q.qMedia || ''}" placeholder="photo1.jpg или song.mp3">
+            </div>
+          `;
+          catBox.appendChild(qBox);
+        });
+
+        container.appendChild(catBox);
+      });
     }
 
-    // Запуск
+    function saveEditorData() {
+      const sel = document.getElementById('editor-round-select');
+      const rIdx = parseInt(sel.value);
+      const round = gameData.rounds[rIdx];
+
+      round.categories.forEach((cat, cIdx) => {
+        cat.name = document.getElementById(`cat-name-${rIdx}-${cIdx}`).value;
+        cat.questions.forEach((q, qIdx) => {
+          q.text = document.getElementById(`q-text-${rIdx}-${cIdx}-${qIdx}`).value;
+          q.answer = document.getElementById(`q-ans-${rIdx}-${cIdx}-${qIdx}`).value;
+          q.qMedia = document.getElementById(`q-media-${rIdx}-${cIdx}-${qIdx}`).value.trim();
+        });
+      });
+
+      localStorage.setItem('mombday_data_v4', JSON.stringify(gameData));
+      alert('Все вопросы раунда сохранены!');
+      toggleEditor();
+      renderBoard();
+    }
+
     init();
   </script>
 </body>
