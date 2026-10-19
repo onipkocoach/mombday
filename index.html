@@ -3,298 +3,320 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Своя Игра</title>
+  <title>Своя Игра — Главная</title>
   <style>
     :root {
-      --svoyak-blue: #001f5c;
-      --svoyak-dark: #000c24;
-      --svoyak-tile: #0a2f87;
-      --svoyak-gold: #ffcc00;
-      --svoyak-gold-active: #ffe066;
-      --svoyak-border: #1a4ab8;
-      --text-white: #ffffff;
+      --sv-blue: #001f5c;
+      --sv-dark: #000c24;
+      --sv-tile: #0a2f87;
+      --sv-gold: #ffcc00;
+      --sv-gold-hover: #ffe066;
+      --sv-border: #1a4ab8;
       --danger: #d90429;
       --success: #008000;
+      --text: #ffffff;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial Black', Impact, -apple-system, sans-serif; }
-    body { background-color: var(--svoyak-dark); color: var(--text-white); min-height: 100vh; display: flex; flex-direction: column; padding: 8px; user-select: none; }
+    body { background: var(--sv-dark); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; padding: 12px; }
 
-    /* Верхняя панель */
-    header { display: flex; justify-content: space-between; align-items: center; background: var(--svoyak-blue); border: 2px solid var(--svoyak-gold); border-radius: 8px; padding: 8px 16px; margin-bottom: 8px; }
-    .round-indicator { color: var(--svoyak-gold); font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
-    .header-btns { display: flex; gap: 8px; }
-
-    .btn { background: var(--svoyak-gold); color: #000; border: 2px solid #fff; border-radius: 6px; padding: 6px 14px; font-size: 0.95rem; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: transform 0.1s; }
-    .btn:hover { background: var(--svoyak-gold-active); transform: scale(1.02); }
-    .btn-blue { background: #1a4ab8; color: #fff; border-color: var(--svoyak-gold); }
+    .btn { background: var(--sv-gold); color: #000; border: 2px solid #fff; border-radius: 6px; padding: 10px 18px; font-size: 1rem; font-weight: 900; cursor: pointer; text-transform: uppercase; transition: transform 0.1s; }
+    .btn:hover { background: var(--sv-gold-hover); transform: scale(1.02); }
+    .btn-blue { background: #1a4ab8; color: #fff; border-color: var(--sv-gold); }
     .btn-red { background: var(--danger); color: #fff; border-color: #fff; }
     .btn-green { background: var(--success); color: #fff; border-color: #fff; }
     .btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
-    /* Табло "Своя Игра" */
-    #board-container { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-    .board-row { display: grid; grid-template-columns: 240px repeat(5, 1fr); gap: 6px; align-items: stretch; }
-    
-    .theme-cell { background: var(--svoyak-blue); border: 2px solid var(--svoyak-gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font-size: 1.1rem; color: #fff; text-transform: uppercase; line-height: 1.2; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-    
-    .price-cell { background: var(--svoyak-tile); border: 2px solid var(--svoyak-gold); border-radius: 6px; aspect-ratio: 16/9; min-height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--svoyak-gold); cursor: pointer; text-shadow: 2px 2px 4px #000; transition: transform 0.1s, background-color 0.1s; }
-    .price-cell:hover { background: #1342b3; transform: scale(1.03); }
-    .price-cell.empty { background: #000814; border-color: #0b1d40; color: transparent; cursor: default; pointer-events: none; }
+    /* Главный экран выбора */
+    #view-main-menu { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; }
+    .menu-title { font-size: 3rem; color: var(--sv-gold); text-shadow: 3px 3px 6px #000; text-transform: uppercase; }
+    .menu-box { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 400px; }
+    .menu-btn { font-size: 1.4rem; padding: 18px; border-radius: 10px; }
 
-    /* Нижняя панель команд */
-    #teams-container { display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-    .team-box { background: var(--svoyak-blue); border: 2px solid var(--svoyak-gold); border-radius: 6px; padding: 6px 16px; min-width: 160px; text-align: center; }
-    .team-title { font-size: 1rem; color: #fff; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .team-points { font-size: 1.6rem; color: var(--svoyak-gold); text-shadow: 1px 1px 3px #000; }
+    /* Экран настройки игры перед запуском */
+    #view-lobby { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; gap: 18px; max-width: 600px; margin: 0 auto; width: 100%; }
+    .lobby-card { background: var(--sv-blue); border: 2px solid var(--sv-gold); border-radius: 10px; padding: 20px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
 
-    /* Переключение раундов */
-    .round-controller { display: flex; justify-content: center; gap: 12px; margin: 6px 0; }
-
-    /* Экран вопроса на весь экран */
-    #question-overlay { display: none; position: fixed; inset: 0; background: var(--svoyak-dark); z-index: 1000; flex-direction: column; padding: 20px; align-items: center; justify-content: space-between; border: 4px solid var(--svoyak-gold); }
-    #question-overlay.active { display: flex; }
+    /* Табло игры */
+    #view-game { display: none; flex-direction: column; flex-grow: 1; gap: 8px; justify-content: space-between; }
+    header { display: flex; justify-content: space-between; align-items: center; background: var(--sv-blue); border: 2px solid var(--sv-gold); border-radius: 8px; padding: 8px 16px; }
+    .round-title { font-size: 1.4rem; color: var(--sv-gold); }
     
-    .q-header { font-size: 2.2rem; color: var(--svoyak-gold); text-align: center; text-transform: uppercase; }
+    #board-table { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; justify-content: center; }
+    .board-row { display: grid; grid-template-columns: 240px repeat(auto-fit, minmax(70px, 1fr)); gap: 6px; }
+    .theme-cell { background: var(--sv-blue); border: 2px solid var(--sv-gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font-size: 1.1rem; color: #fff; text-transform: uppercase; }
+    .price-cell { background: var(--sv-tile); border: 2px solid var(--sv-gold); border-radius: 6px; aspect-ratio: 16/9; min-height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--sv-gold); cursor: pointer; text-shadow: 2px 2px 4px #000; }
+    .price-cell:hover { background: #1342b3; transform: scale(1.02); }
+    .price-cell.empty { background: #000814; border-color: #0b1d40; color: transparent; pointer-events: none; }
+
+    #teams-bar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .team-card { background: var(--sv-blue); border: 2px solid var(--sv-gold); border-radius: 6px; padding: 6px 16px; min-width: 150px; text-align: center; }
+    .team-name { font-size: 0.95rem; }
+    .team-score { font-size: 1.6rem; color: var(--sv-gold); }
+
+    /* Модальное окно вопроса */
+    #modal-question { display: none; position: fixed; inset: 0; background: var(--sv-dark); z-index: 1000; flex-direction: column; padding: 20px; align-items: center; justify-content: space-between; border: 4px solid var(--sv-gold); }
+    #modal-question.active { display: flex; }
+    .q-cost { font-size: 2.2rem; color: var(--sv-gold); }
     .q-body { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1100px; text-align: center; gap: 14px; }
-    .q-text { font-size: 2rem; line-height: 1.3; color: #fff; font-family: Arial, sans-serif; font-weight: bold; }
-    
-    .media-container { max-height: 45vh; max-width: 100%; display: flex; justify-content: center; }
-    .media-container img, .media-container video { max-height: 45vh; max-width: 100%; border: 3px solid var(--svoyak-gold); border-radius: 8px; }
+    .q-text { font-size: 2rem; line-height: 1.3; font-family: Arial, sans-serif; }
+    .media-holder { max-height: 44vh; max-width: 100%; display: flex; justify-content: center; }
+    .media-holder img, .media-holder video { max-height: 44vh; max-width: 100%; border: 3px solid var(--sv-gold); border-radius: 8px; }
+    .answer-box { display: none; background: #002878; border: 2px dashed var(--sv-gold); border-radius: 8px; padding: 12px 20px; width: 100%; }
+    .answer-box.active { display: block; }
 
-    .answer-panel { display: none; background: #002878; border: 2px dashed var(--svoyak-gold); border-radius: 8px; padding: 12px 20px; width: 100%; text-align: center; }
-    .answer-panel.show { display: block; }
-    .answer-label { color: var(--svoyak-gold); font-size: 1.1rem; text-transform: uppercase; margin-bottom: 4px; }
-    .answer-text { font-size: 1.6rem; color: #fff; font-family: Arial, sans-serif; font-weight: bold; }
-
-    /* Панель ответа игроков */
-    .gameplay-controls { background: var(--svoyak-blue); border: 2px solid var(--svoyak-border); border-radius: 8px; padding: 10px; width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .q-controls { background: var(--sv-blue); border: 2px solid var(--sv-border); border-radius: 8px; padding: 10px; width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
     .players-list { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-    .player-btn { background: #0a2f87; color: #fff; border: 2px solid var(--svoyak-gold); padding: 8px 14px; border-radius: 6px; font-size: 1.1rem; cursor: pointer; }
-    .player-btn.active { background: var(--svoyak-gold); color: #000; }
-    .player-btn:disabled { opacity: 0.2; cursor: not-allowed; text-decoration: line-through; }
+    .player-btn { background: #0a2f87; color: #fff; border: 2px solid var(--sv-gold); padding: 8px 14px; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+    .player-btn.selected { background: var(--sv-gold); color: #000; }
+    .player-btn:disabled { opacity: 0.2; text-decoration: line-through; cursor: not-allowed; }
 
-    /* Редактор */
-    #editor-modal { display: none; position: fixed; inset: 0; background: rgba(0,8,20,0.98); z-index: 2000; overflow-y: auto; padding: 16px; }
-    #editor-modal.active { display: block; }
-    .editor-wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
-    .editor-card { background: var(--svoyak-blue); border: 2px solid var(--svoyak-gold); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-    .editor-grid-row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; align-items: center; }
-    .editor-grid-row label { font-size: 0.85rem; color: var(--svoyak-gold); }
-    input, select { background: #000c24; border: 1px solid var(--svoyak-gold); color: #fff; padding: 8px; border-radius: 4px; font-size: 1rem; font-family: Arial, sans-serif; }
+    /* Экран Редактора */
+    #view-editor { display: none; flex-direction: column; gap: 16px; max-width: 1050px; margin: 0 auto; width: 100%; padding-bottom: 50px; }
+    .editor-header { display: flex; justify-content: space-between; align-items: center; background: var(--sv-blue); padding: 12px 16px; border-radius: 8px; border: 2px solid var(--sv-gold); }
+    .round-editor-card { background: var(--sv-blue); border: 2px solid var(--sv-border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .theme-editor-card { background: #09173b; border: 1px solid var(--sv-gold); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .q-editor-card { background: #050d24; border-left: 4px solid var(--sv-gold); padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 6px; }
+    
+    .row-input { display: grid; grid-template-columns: 140px 1fr; gap: 8px; align-items: center; }
+    .row-input label { font-size: 0.85rem; color: var(--sv-gold); font-family: Arial, sans-serif; }
+    input { background: #000c24; border: 1px solid var(--sv-border); color: #fff; padding: 8px; border-radius: 4px; font-size: 1rem; font-family: Arial, sans-serif; }
 
     @media (max-width: 800px) {
-      .board-row { grid-template-columns: 110px repeat(5, 1fr); gap: 4px; }
+      .board-row { grid-template-columns: 110px repeat(auto-fit, minmax(50px, 1fr)); }
       .theme-cell { font-size: 0.75rem; padding: 4px; }
       .price-cell { font-size: 1.1rem; min-height: 45px; }
       .q-text { font-size: 1.3rem; }
-      .q-header { font-size: 1.4rem; }
+      .row-input { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="round-indicator" id="ui-round-name">РАУНД 1</div>
-    <div class="header-btns">
-      <button class="btn" onclick="openEditor()">⚙️ РЕДАКТОР</button>
-      <button class="btn btn-red" onclick="resetAllGame()">🔄 СБРОС</button>
+  <!-- 1. ГЛАВНОЕ МЕНЮ (ПРИ ВХОДЕ) -->
+  <section id="view-main-menu">
+    <h1 class="menu-title">Своя Игра 💖</h1>
+    <div class="menu-box">
+      <button class="btn menu-btn" onclick="openLobby()">🎮 Играть</button>
+      <button class="btn btn-blue menu-btn" onclick="openEditor()">⚙️ Редактор пака</button>
     </div>
-  </header>
+  </section>
 
-  <!-- Сетка игры -->
-  <main id="board-container"></main>
+  <!-- 2. ЛОББИ (ВЫБОР ФАЙЛА И КОМАНД ПЕРЕД ИГРОЙ) -->
+  <section id="view-lobby">
+    <div class="lobby-card">
+      <h2 style="color:var(--sv-gold);">Подготовка к игре</h2>
+      
+      <div>
+        <label style="font-size:0.9rem; color:#a0aec0; display:block; margin-bottom:4px;">1. Выберите файл игры (.json):</label>
+        <input type="file" id="lobby-file-input" accept=".json" style="width:100%; cursor:pointer;">
+        <div style="margin-top:6px; font-size:0.85rem; color:#ffcc00;" id="pack-status-label">Либо будет использован текущий сохранённый пак</div>
+      </div>
 
-  <!-- Переход по раундам -->
-  <div class="round-controller" id="round-navigation"></div>
+      <div>
+        <label style="font-size:0.9rem; color:#a0aec0; display:block; margin-bottom:4px;">2. Настройка команд:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="lobby-team-input" placeholder="Имя команды" style="flex-grow:1;">
+          <button class="btn" onclick="addLobbyTeam()">Добавить</button>
+        </div>
+        <div id="lobby-teams-list" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;"></div>
+      </div>
 
-  <!-- Панель команд -->
-  <div id="teams-container"></div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn btn-green" onclick="startPlayGame()" style="flex-grow:1; padding:14px; font-size:1.1rem;">🚀 НАЧАТЬ ИГРУ</button>
+        <button class="btn btn-red" onclick="returnToMainMenu()">Назад</button>
+      </div>
+    </div>
+  </section>
 
-  <!-- Модальное окно вопроса -->
-  <div id="question-overlay">
-    <div class="q-header" id="overlay-cost">100 БАЛЛОВ</div>
+  <!-- 3. ЭКРАН САМОЙ ИГРЫ -->
+  <section id="view-game">
+    <header>
+      <div class="round-title" id="game-round-title">РАУНД 1</div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-blue" id="btn-next-round" onclick="nextRound()">Следующий раунд ➡️</button>
+        <button class="btn btn-red" onclick="exitGame()">Выход в меню</button>
+      </div>
+    </header>
+
+    <div id="board-table"></div>
+    <div id="teams-bar"></div>
+  </section>
+
+  <!-- МОДАЛЬНОЕ ОКНО ВОПРОСА -->
+  <div id="modal-question">
+    <div class="q-cost" id="q-cost-display">100 БАЛЛОВ</div>
 
     <div class="q-body">
-      <div class="q-text" id="overlay-question-text">Текст вопроса</div>
-      <div class="media-container" id="overlay-q-media"></div>
+      <div class="q-text" id="q-text-display">Вопрос</div>
+      <div class="media-holder" id="q-media-box"></div>
 
-      <div class="answer-panel" id="overlay-answer-box">
-        <div class="answer-label">Правильный ответ:</div>
-        <div class="answer-text" id="overlay-answer-text">Ответ</div>
-        <div class="media-container" id="overlay-a-media" style="margin-top:8px;"></div>
+      <div class="answer-box" id="q-answer-box">
+        <div style="color:var(--sv-gold); font-size:1.1rem; margin-bottom:4px;">ПРАВИЛЬНЫЙ ОТВЕТ:</div>
+        <div style="font-size:1.7rem; font-family:Arial,sans-serif;" id="q-answer-text">Ответ</div>
+        <div class="media-holder" id="a-media-box" style="margin-top:8px;"></div>
       </div>
     </div>
 
-    <!-- Управление раундом -->
-    <div class="gameplay-controls">
-      <div style="font-size: 0.9rem; color: var(--svoyak-gold);">КТО ОТВЕЧАЕТ:</div>
-      <div class="players-list" id="modal-teams-buttons"></div>
+    <div class="q-controls">
+      <div style="font-size:0.9rem; color:var(--sv-gold);">КТО ОТВЕЧАЕТ:</div>
+      <div class="players-list" id="modal-players-list"></div>
 
-      <div style="display: flex; gap: 8px; margin-top: 6px;" id="verdict-actions" style="display:none;">
+      <div id="modal-verdict-box" style="display:none; gap:10px; margin-top:6px;">
         <button class="btn btn-green" onclick="judgeAnswer(true)">✅ ВЕРНО (+БАЛЛЫ)</button>
         <button class="btn btn-red" onclick="judgeAnswer(false)">❌ НЕВЕРНО (-БАЛЛЫ)</button>
       </div>
 
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <button class="btn btn-blue" onclick="revealAnswer()">👀 ОТВЕТ</button>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="btn btn-blue" onclick="revealAnswer()">👀 ПОКАЗАТЬ ОТВЕТ</button>
         <button class="btn" onclick="passQuestion()">⏭️ ПРОПУСК</button>
-        <button class="btn btn-blue" onclick="closeQuestionOverlay()">ЗАКРЫТЬ ВОПРОС</button>
+        <button class="btn btn-blue" onclick="closeQuestion()">ЗАКРЫТЬ ВОПРОС</button>
       </div>
     </div>
   </div>
 
-  <!-- Визуальный редактор -->
-  <div id="editor-modal">
-    <div class="editor-wrap">
-      <div class="editor-card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h2 style="color:var(--svoyak-gold);">КОМАНДЫ</h2>
-          <button class="btn btn-blue" onclick="closeEditor()">✕ ЗАКРЫТЬ</button>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="new-team-input" placeholder="Название команды" style="flex-grow:1;">
-          <button class="btn" onclick="addTeamFromInput()">ДОБАВИТЬ</button>
-        </div>
-        <div id="editor-teams-tags" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
-      </div>
-
-      <div class="editor-card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="color:var(--svoyak-gold);">ВОПРОСЫ РАУНДА</h2>
-          <select id="editor-round-picker" onchange="renderEditorInputs()"></select>
-        </div>
-        <p style="font-size: 0.85rem; color: #a8b8d8; font-family: Arial;">
-          Если хотите добавить картинку, музыку или видео — загрузите файл на GitHub и напишите его точное название в поле «Медиа» (например: <code>photo.jpg</code> или <code>song.mp3</code>).
-        </p>
-
-        <div id="editor-fields-list"></div>
-
-        <button class="btn btn-green" onclick="saveEditorData()" style="padding: 12px; font-size: 1.1rem; margin-top: 10px;">💾 СОХРАНИТЬ ВСЕ ВОПРОСЫ</button>
+  <!-- 4. ВИЗУАЛЬНЫЙ РЕДАКТОР ПАКА -->
+  <section id="view-editor">
+    <div class="editor-header">
+      <h2 style="color:var(--sv-gold);">Редактор пака игры</h2>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-green" onclick="exportPackFile()">💾 Скачать пак (.json)</button>
+        <button class="btn btn-red" onclick="returnToMainMenu()">Выйти в меню</button>
       </div>
     </div>
-  </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+      <button class="btn" onclick="addRoundToEditor()">➕ ДОБАВИТЬ РАУНД</button>
+      <button class="btn btn-blue" onclick="saveEditorLocally()">Сохранить в браузере</button>
+    </div>
+
+    <div id="editor-rounds-container"></div>
+  </section>
 
   <script>
-    // Базовый игровой пак в стиле Свояка
-    const baseGamePack = {
-      rounds: [
-        {
-          name: "РАУНД 1",
-          themes: [
-            {
-              title: "СЕМЕЙНЫЙ АЛЬБОМ",
-              questions: [
-                { cost: 100, text: "В каком году сделан этот памятный снимок?", answer: "1998 год", qMedia: "", aMedia: "" },
-                { cost: 200, text: "Коронное фирменное блюдо мамы на праздник?", answer: "Фирменный салат", qMedia: "", aMedia: "" },
-                { cost: 300, text: "Любимая песня мамы из молодости?", answer: "Название песни", qMedia: "", aMedia: "" },
-                { cost: 400, text: "Где мама отдыхала в тот памятный отпуск?", answer: "На море", qMedia: "", aMedia: "" },
-                { cost: 500, text: "О чём мама больше всего мечтала в детстве?", answer: "Ответ", qMedia: "", aMedia: "" }
-              ]
-            },
-            {
-              title: "КИНО И СЕРИАЛЫ",
-              questions: [
-                { cost: 100, text: "Любимый советский фильм мамы?", answer: "Любовь и голуби", qMedia: "", aMedia: "" },
-                { cost: 200, text: "Из какого фильма эта фраза?", answer: "Москва слезам не верит", qMedia: "", aMedia: "" },
-                { cost: 300, text: "Кто любимый актёр мамы?", answer: "Ответ", qMedia: "", aMedia: "" },
-                { cost: 400, text: "Кадр из какого фильма на экране?", answer: "Служебный роман", qMedia: "", aMedia: "" },
-                { cost: 500, text: "Телепередача, которую мама никогда не пропускает?", answer: "Ответ", qMedia: "", aMedia: "" }
-              ]
-            }
-          ]
-        },
-        {
-          name: "РАУНД 2",
-          themes: [
-            {
-              title: "ПРИВЫЧКИ И ВКУСЫ",
-              questions: [
-                { cost: 200, text: "Любимые цветы мамы?", answer: "Тюльпаны", qMedia: "", aMedia: "" },
-                { cost: 400, text: "Любимое время года?", answer: "Весна", qMedia: "", aMedia: "" },
-                { cost: 600, text: "Чай или кофе по утрам?", answer: "Чай с лимоном", qMedia: "", aMedia: "" },
-                { cost: 800, text: "Любимый цвет одежды?", answer: "Синий", qMedia: "", aMedia: "" },
-                { cost: 1000, text: "Любимое хобби мамы?", answer: "Ответ", qMedia: "", aMedia: "" }
-              ]
-            }
-          ]
-        },
-        {
-          name: "РАУНД 3",
-          themes: [
-            {
-              title: "СЕКРЕТНЫЕ ФАКТЫ",
-              questions: [
-                { cost: 300, text: "Любимый предмет мамы в школе?", answer: "Литература", qMedia: "", aMedia: "" },
-                { cost: 600, text: "Первый домашний питомец в семье?", answer: "Кот", qMedia: "", aMedia: "" },
-                { cost: 900, text: "Сколько городов посетила мама?", answer: "Более 10", qMedia: "", aMedia: "" },
-                { cost: 1200, text: "Кем мама мечтала стать до школы?", answer: "Учителем", qMedia: "", aMedia: "" },
-                { cost: 1500, text: "Вопрос-сюрприз от детей!", answer: "Мы тебя любим!", qMedia: "", aMedia: "" }
-              ]
-            }
-          ]
-        },
-        {
-          name: "ФИНАЛ",
-          themes: [
-            {
-              title: "СУПЕРИГРА",
-              questions: [
-                { cost: 5000, text: "Главное праздничное пожелание маме от всей семьи!", answer: "Здоровья, радости и гармонии каждый день!", qMedia: "", aMedia: "" }
-              ]
-            }
-          ]
-        }
-      ]
+    // Шаблон игры по умолчанию (если ещё ничего не создано)
+    let currentPack = {
+      rounds: []
     };
 
-    // Состояние игры
-    let gameState = {
-      pack: baseGamePack,
-      teams: [
-        { name: "Команда 1", score: 0 },
-        { name: "Команда 2", score: 0 }
-      ],
-      currentRound: 0,
-      played: []
-    };
+    let teams = [
+      { name: "Команда 1", score: 0 },
+      { name: "Команда 2", score: 0 }
+    ];
 
-    let activeCost = 0;
-    let selectedPlayerIdx = null;
+    let currentRoundIdx = 0;
+    let playedQuestions = [];
+    let activeQuestionCost = 0;
+    let selectedTeamIdx = null;
     let lockedTeams = [];
 
-    // Загрузка
+    // Инициализация при старте
     function init() {
-      try {
-        const saved = localStorage.getItem('svoyak_mombday_data_clean');
-        if (saved) {
-          gameState = JSON.parse(saved);
-        }
-      } catch (e) {
-        console.error(e);
+      const savedPack = localStorage.getItem('svoyak_custom_pack');
+      if (savedPack) {
+        try { currentPack = JSON.parse(savedPack); } catch(e){}
       }
-      renderAll();
+      const savedTeams = localStorage.getItem('svoyak_custom_teams');
+      if (savedTeams) {
+        try { teams = JSON.parse(savedTeams); } catch(e){}
+      }
+      renderLobbyTeams();
     }
 
-    function saveState() {
-      localStorage.setItem('svoyak_mombday_data_clean', JSON.stringify(gameState));
+    /* Навигация экранов */
+    function showScreen(id) {
+      document.getElementById('view-main-menu').style.display = 'none';
+      document.getElementById('view-lobby').style.display = 'none';
+      document.getElementById('view-game').style.display = 'none';
+      document.getElementById('view-editor').style.display = 'none';
+      document.getElementById(id).style.display = 'flex';
+      if (id === 'view-editor') document.getElementById(id).style.display = 'flex';
     }
 
-    function renderAll() {
-      renderBoard();
-      renderTeams();
-      renderRoundNav();
+    function returnToMainMenu() {
+      showScreen('view-main-menu');
     }
 
-    // Отрисовка табло
-    function renderBoard() {
-      const container = document.getElementById('board-container');
-      container.innerHTML = '';
-      
-      const round = gameState.pack.rounds[gameState.currentRound];
+    function openLobby() {
+      showScreen('view-lobby');
+      renderLobbyTeams();
+    }
+
+    /* Лобби и загрузка пака */
+    function renderLobbyTeams() {
+      const list = document.getElementById('lobby-teams-list');
+      list.innerHTML = '';
+      teams.forEach((t, idx) => {
+        const item = document.createElement('span');
+        item.style.background = '#0a2f87';
+        item.style.border = '1px solid var(--sv-gold)';
+        item.style.padding = '4px 10px';
+        item.style.borderRadius = '4px';
+        item.innerHTML = `${t.name} <b style="color:red; cursor:pointer; margin-left:6px;" onclick="removeLobbyTeam(${idx})">&times;</b>`;
+        list.appendChild(item);
+      });
+    }
+
+    function addLobbyTeam() {
+      const inp = document.getElementById('lobby-team-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      teams.push({ name: val, score: 0 });
+      inp.value = '';
+      localStorage.setItem('svoyak_custom_teams', JSON.stringify(teams));
+      renderLobbyTeams();
+    }
+
+    function removeLobbyTeam(idx) {
+      teams.splice(idx, 1);
+      localStorage.setItem('svoyak_custom_teams', JSON.stringify(teams));
+      renderLobbyTeams();
+    }
+
+    document.getElementById('lobby-file-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const loaded = JSON.parse(evt.target.result);
+          if (loaded.rounds) {
+            currentPack = loaded;
+            localStorage.setItem('svoyak_custom_pack', JSON.stringify(currentPack));
+            document.getElementById('pack-status-label').innerText = `✅ Загружен пак: "${file.name}" (${currentPack.rounds.length} раунд.)`;
+          }
+        } catch(err) {
+          alert('Ошибка чтения JSON файла!');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function startPlayGame() {
+      if (!currentPack.rounds || currentPack.rounds.length === 0) {
+        alert("В паке нет раундов! Сначала откройте Редактор и создайте раунды с вопросами.");
+        return;
+      }
+      if (teams.length === 0) {
+        alert("Добавьте хотя бы одну команду!");
+        return;
+      }
+      currentRoundIdx = 0;
+      playedQuestions = [];
+      teams.forEach(t => t.score = 0);
+      showScreen('view-game');
+      renderGameBoard();
+      renderGameTeams();
+    }
+
+    /* Игровое табло */
+    function renderGameBoard() {
+      const table = document.getElementById('board-table');
+      table.innerHTML = '';
+
+      const round = currentPack.rounds[currentRoundIdx];
       if (!round) return;
 
-      document.getElementById('ui-round-name').innerText = round.name;
+      document.getElementById('game-round-title').innerText = round.name;
 
       round.themes.forEach((theme, tIdx) => {
         const row = document.createElement('div');
@@ -302,13 +324,13 @@
 
         const tCell = document.createElement('div');
         tCell.className = 'theme-cell';
-        tCell.innerText = theme.title;
+        tCell.innerText = theme.name;
         row.appendChild(tCell);
 
         theme.questions.forEach((q, qIdx) => {
           const qCell = document.createElement('div');
-          const qKey = `r${gameState.currentRound}_t${tIdx}_q${qIdx}`;
-          const isPlayed = gameState.played.includes(qKey);
+          const qKey = `r${currentRoundIdx}_t${tIdx}_q${qIdx}`;
+          const isPlayed = playedQuestions.includes(qKey);
 
           qCell.className = 'price-cell' + (isPlayed ? ' empty' : '');
           qCell.innerText = isPlayed ? '' : q.cost;
@@ -319,78 +341,72 @@
           row.appendChild(qCell);
         });
 
-        container.appendChild(row);
+        table.appendChild(row);
       });
-    }
 
-    // Навигация раундов
-    function renderRoundNav() {
-      const nav = document.getElementById('round-navigation');
-      nav.innerHTML = '';
-
-      if (gameState.currentRound > 0) {
-        const prev = document.createElement('button');
-        prev.className = 'btn btn-blue';
-        prev.innerText = '⬅️ ПРЕДЫДУЩИЙ РАУНД';
-        prev.onclick = () => { gameState.currentRound--; saveState(); renderAll(); };
-        nav.appendChild(prev);
-      }
-
-      if (gameState.currentRound < gameState.pack.rounds.length - 1) {
-        const next = document.createElement('button');
-        next.className = 'btn';
-        next.innerText = `➡️ ПЕРЕЙТИ: ${gameState.pack.rounds[gameState.currentRound + 1].name}`;
-        next.onclick = () => { gameState.currentRound++; saveState(); renderAll(); };
-        nav.appendChild(next);
+      // Кнопка следующего раунда
+      const nextBtn = document.getElementById('btn-next-round');
+      if (currentRoundIdx < currentPack.rounds.length - 1) {
+        nextBtn.style.display = 'block';
+        nextBtn.innerText = `Перейти: ${currentPack.rounds[currentRoundIdx + 1].name} ➡️`;
+      } else {
+        nextBtn.style.display = 'none';
       }
     }
 
-    // Отрисовка команд
-    function renderTeams() {
-      const container = document.getElementById('teams-container');
-      container.innerHTML = '';
+    function nextRound() {
+      if (currentRoundIdx < currentPack.rounds.length - 1) {
+        currentRoundIdx++;
+        renderGameBoard();
+      }
+    }
 
-      gameState.teams.forEach(t => {
-        const box = document.createElement('div');
-        box.className = 'team-box';
-        box.innerHTML = `
-          <div class="team-title">${t.name}</div>
-          <div class="team-points">${t.score}</div>
-        `;
-        container.appendChild(box);
+    function renderGameTeams() {
+      const bar = document.getElementById('teams-bar');
+      bar.innerHTML = '';
+      teams.forEach(t => {
+        const c = document.createElement('div');
+        c.className = 'team-card';
+        c.innerHTML = `<div class="team-name">${t.name}</div><div class="team-score">${t.score}</div>`;
+        bar.appendChild(c);
       });
     }
 
-    // Открытие вопроса
+    function exitGame() {
+      if (confirm("Выйти в главное меню? Текущий счёт будет сброшен.")) {
+        returnToMainMenu();
+      }
+    }
+
+    /* Окно вопроса */
     function openQuestion(tIdx, qIdx, qKey) {
-      const q = gameState.pack.rounds[gameState.currentRound].themes[tIdx].questions[qIdx];
-      activeCost = q.cost;
-      selectedPlayerIdx = null;
+      const q = currentPack.rounds[currentRoundIdx].themes[tIdx].questions[qIdx];
+      activeQuestionCost = q.cost;
+      selectedTeamIdx = null;
       lockedTeams = [];
 
-      document.getElementById('overlay-cost').innerText = `${q.cost} БАЛЛОВ`;
-      document.getElementById('overlay-question-text').innerText = q.text;
+      document.getElementById('q-cost-display').innerText = `${q.cost} БАЛЛОВ`;
+      document.getElementById('q-text-display').innerText = q.text;
 
       // Медиа вопроса
-      renderMediaBox(document.getElementById('overlay-q-media'), q.qMedia);
+      renderMedia(document.getElementById('q-media-box'), q.qMedia);
 
-      // Скрываем ответ
-      document.getElementById('overlay-answer-box').classList.remove('show');
-      document.getElementById('overlay-answer-text').innerText = q.answer;
-      renderMediaBox(document.getElementById('overlay-a-media'), q.aMedia);
+      // Ответ
+      document.getElementById('q-answer-box').classList.remove('active');
+      document.getElementById('q-answer-text').innerText = q.answer;
+      renderMedia(document.getElementById('a-media-box'), q.aMedia);
 
-      document.getElementById('verdict-actions').style.display = 'none';
-      renderModalTeams();
+      document.getElementById('modal-verdict-box').style.display = 'none';
+      renderModalPlayers();
 
-      document.getElementById('question-overlay').classList.add('active');
+      document.getElementById('modal-question').classList.add('active');
 
-      if (!gameState.played.includes(qKey)) {
-        gameState.played.push(qKey);
-        saveState();
+      if (!playedQuestions.includes(qKey)) {
+        playedQuestions.push(qKey);
       }
     }
 
-    function renderMediaBox(container, filename) {
+    function renderMedia(container, filename) {
       container.innerHTML = '';
       if (!filename) return;
       const lower = filename.toLowerCase().trim();
@@ -399,213 +415,4 @@
       } else if (lower.endsWith('.mp3') || lower.endsWith('.wav') || lower.endsWith('.ogg') || lower.endsWith('.m4a')) {
         container.innerHTML = `<audio src="${filename}" controls autoplay></audio>`;
       } else {
-        container.innerHTML = `<img src="${filename}" alt="Медиа">`;
-      }
-    }
-
-    function renderModalTeams() {
-      const list = document.getElementById('modal-teams-buttons');
-      list.innerHTML = '';
-
-      gameState.teams.forEach((team, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'player-btn' + (selectedPlayerIdx === idx ? ' active' : '');
-        btn.innerText = team.name;
-
-        if (lockedTeams.includes(idx)) {
-          btn.disabled = true;
-        }
-
-        btn.onclick = () => {
-          selectedPlayerIdx = idx;
-          renderModalTeams();
-          document.getElementById('verdict-actions').style.display = 'flex';
-        };
-        list.appendChild(btn);
-      });
-    }
-
-    function judgeAnswer(isCorrect) {
-      if (selectedPlayerIdx === null) return;
-
-      if (isCorrect) {
-        gameState.teams[selectedPlayerIdx].score += activeCost;
-        saveState();
-        renderTeams();
-        revealAnswer();
-        document.getElementById('verdict-actions').style.display = 'none';
-      } else {
-        gameState.teams[selectedPlayerIdx].score -= activeCost;
-        lockedTeams.push(selectedPlayerIdx);
-        selectedPlayerIdx = null;
-        saveState();
-        renderTeams();
-        document.getElementById('verdict-actions').style.display = 'none';
-        renderModalTeams();
-
-        if (lockedTeams.length >= gameState.teams.length) {
-          revealAnswer();
-        }
-      }
-    }
-
-    function revealAnswer() {
-      document.getElementById('overlay-answer-box').classList.add('show');
-    }
-
-    function passQuestion() {
-      revealAnswer();
-      document.getElementById('verdict-actions').style.display = 'none';
-    }
-
-    function closeQuestionOverlay() {
-      document.getElementById('question-overlay').classList.remove('active');
-      document.getElementById('overlay-q-media').innerHTML = '';
-      document.getElementById('overlay-a-media').innerHTML = '';
-      renderBoard();
-    }
-
-    function resetAllGame() {
-      if (confirm("Сбросить счёт всех команд и восстановить все закрытые вопросы?")) {
-        gameState.played = [];
-        gameState.teams.forEach(t => t.score = 0);
-        gameState.currentRound = 0;
-        saveState();
-        renderAll();
-      }
-    }
-
-    // Функции Редактора
-    function openEditor() {
-      document.getElementById('editor-modal').classList.add('active');
-      renderEditorTeamsTags();
-      setupEditorRoundPicker();
-      renderEditorInputs();
-    }
-
-    function closeEditor() {
-      document.getElementById('editor-modal').classList.remove('active');
-      renderAll();
-    }
-
-    function renderEditorTeamsTags() {
-      const container = document.getElementById('editor-teams-tags');
-      container.innerHTML = '';
-      gameState.teams.forEach((t, idx) => {
-        const tag = document.createElement('span');
-        tag.style.background = '#000c24';
-        tag.style.border = '1px solid var(--svoyak-gold)';
-        tag.style.padding = '4px 8px';
-        tag.style.borderRadius = '4px';
-        tag.innerHTML = `${t.name} <b style="color:red; cursor:pointer; margin-left:4px;" onclick="removeTeam(${idx})">&times;</b>`;
-        container.appendChild(tag);
-      });
-    }
-
-    function addTeamFromInput() {
-      const inp = document.getElementById('new-team-input');
-      const val = inp.value.trim();
-      if (!val) return;
-      gameState.teams.push({ name: val, score: 0 });
-      inp.value = '';
-      saveState();
-      renderEditorTeamsTags();
-    }
-
-    function removeTeam(idx) {
-      gameState.teams.splice(idx, 1);
-      saveState();
-      renderEditorTeamsTags();
-    }
-
-    function setupEditorRoundPicker() {
-      const sel = document.getElementById('editor-round-picker');
-      sel.innerHTML = '';
-      gameState.pack.rounds.forEach((r, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.innerText = r.name;
-        if (idx === gameState.currentRound) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    }
-
-    function renderEditorInputs() {
-      const sel = document.getElementById('editor-round-picker');
-      const rIdx = parseInt(sel.value);
-      const container = document.getElementById('editor-fields-list');
-      container.innerHTML = '';
-
-      const round = gameState.pack.rounds[rIdx];
-      if (!round) return;
-
-      round.themes.forEach((th, tIdx) => {
-        const themeCard = document.createElement('div');
-        themeCard.style.marginTop = '12px';
-        themeCard.style.background = '#00143d';
-        themeCard.style.padding = '10px';
-        themeCard.style.borderRadius = '6px';
-
-        themeCard.innerHTML = `
-          <div class="editor-grid-row" style="margin-bottom:8px;">
-            <label>ТЕМА:</label>
-            <input type="text" id="inp-th-${rIdx}-${tIdx}" value="${th.title}">
-          </div>
-        `;
-
-        th.questions.forEach((q, qIdx) => {
-          const qBox = document.createElement('div');
-          qBox.style.background = '#0a2366';
-          qBox.style.padding = '8px';
-          qBox.style.borderRadius = '4px';
-          qBox.style.marginBottom = '6px';
-          qBox.style.display = 'flex';
-          qBox.style.flexDirection = 'column';
-          qBox.style.gap = '4px';
-
-          qBox.innerHTML = `
-            <div style="color:var(--svoyak-gold); font-size:0.9rem;">ВОПРОС ЗА ${q.cost}</div>
-            <div class="editor-grid-row">
-              <label>Вопрос:</label>
-              <input type="text" id="inp-qt-${rIdx}-${tIdx}-${qIdx}" value="${q.text}">
-            </div>
-            <div class="editor-grid-row">
-              <label>Ответ:</label>
-              <input type="text" id="inp-qa-${rIdx}-${tIdx}-${qIdx}" value="${q.answer}">
-            </div>
-            <div class="editor-grid-row">
-              <label>Медиа:</label>
-              <input type="text" id="inp-qm-${rIdx}-${tIdx}-${qIdx}" value="${q.qMedia || ''}" placeholder="photo.jpg или song.mp3">
-            </div>
-          `;
-          themeCard.appendChild(qBox);
-        });
-
-        container.appendChild(themeCard);
-      });
-    }
-
-    function saveEditorData() {
-      const sel = document.getElementById('editor-round-picker');
-      const rIdx = parseInt(sel.value);
-      const round = gameState.pack.rounds[rIdx];
-
-      round.themes.forEach((th, tIdx) => {
-        th.title = document.getElementById(`inp-th-${rIdx}-${tIdx}`).value;
-        th.questions.forEach((q, qIdx) => {
-          q.text = document.getElementById(`inp-qt-${rIdx}-${tIdx}-${qIdx}`).value;
-          q.answer = document.getElementById(`inp-qa-${rIdx}-${tIdx}-${qIdx}`).value;
-          q.qMedia = document.getElementById(`inp-qm-${rIdx}-${tIdx}-${qIdx}`).value.trim();
-        });
-      });
-
-      saveState();
-      alert("Все вопросы сохранены!");
-      closeEditor();
-    }
-
-    // Запуск приложения
-    window.onload = init;
-  </script>
-</body>
-</html>
+        container.
